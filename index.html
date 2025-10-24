@@ -326,18 +326,10 @@
                         <label for="rentReceived">Поступившая сумма аренды (руб.)</label>
                         <input type="number" id="rentReceived" min="0" step="0.01">
                     </div>
-                    <div class="form-group">
-                        <label for="maintenance">Текущий ремонт (руб.)</label>
-                        <input type="number" id="maintenance" min="0" step="0.01" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="overhaul">Капитальный ремонт (руб.)</label>
-                        <input type="number" id="overhaul" min="0" step="0.01" value="0">
-                    </div>
                 </div>
                 
                 <div class="card">
-                    <h3>Коммунальные услуги</h3>
+                    <h3>Коммунальные услуги (от арендаторов)</h3>
                     <div class="form-group">
                         <label for="coldWater">Холодная вода (м³)</label>
                         <input type="number" id="coldWater" min="0" step="0.01">
@@ -357,7 +349,20 @@
                 </div>
                 
                 <div class="card">
-                    <h3>Расчет коммунальных услуг</h3>
+                    <h3>Расходы (оплачиваются владельцем)</h3>
+                    <div class="form-group">
+                        <label for="heating">Отопление (руб.)</label>
+                        <input type="number" id="heating" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="zhek">ЖЭК (руб.)</label>
+                        <input type="number" id="zhek" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="overhaul">Капитальный ремонт (руб.)</label>
+                        <input type="number" id="overhaul" min="0" step="0.01" value="0">
+                    </div>
+                    
                     <div class="form-group">
                         <label for="tariffDate">Дата для расчета тарифов</label>
                         <input type="date" id="tariffDate">
@@ -451,11 +456,11 @@
                     <div class="profit-card">
                         <h4>Доходы</h4>
                         <div class="summary-item">
-                            <span>Аренда:</span>
+                            <span>Аренда (поступило):</span>
                             <span id="totalRent">0.00 руб.</span>
                         </div>
                         <div class="summary-item">
-                            <span>Коммунальные услуги:</span>
+                            <span>Коммунальные (поступило):</span>
                             <span id="totalUtilities">0.00 руб.</span>
                         </div>
                         <div class="summary-item summary-total">
@@ -465,10 +470,18 @@
                     </div>
                     
                     <div class="profit-card">
-                        <h4>Расходы</h4>
+                        <h4>Расходы и налоги</h4>
                         <div class="summary-item">
-                            <span>Текущий ремонт:</span>
-                            <span id="totalMaintenance">0.00 руб.</span>
+                            <span>Налог (4% с доходов):</span>
+                            <span id="taxAmount">0.00 руб.</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Отопление:</span>
+                            <span id="totalHeating">0.00 руб.</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>ЖЭК:</span>
+                            <span id="totalZhek">0.00 руб.</span>
                         </div>
                         <div class="summary-item">
                             <span>Капитальный ремонт:</span>
@@ -483,12 +496,8 @@
                     <div class="profit-card">
                         <h4>Прибыль</h4>
                         <div class="summary-item">
-                            <span>Прибыль до налога:</span>
-                            <span id="profitBeforeTax">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Налог (4%):</span>
-                            <span id="taxAmount">0.00 руб.</span>
+                            <span>Доходы за вычетом налога:</span>
+                            <span id="incomeAfterTax">0.00 руб.</span>
                         </div>
                         <div class="summary-item summary-total">
                             <span>Чистая прибыль:</span>
@@ -583,7 +592,8 @@
             const yearInput = document.getElementById('year');
             const rentAmountInput = document.getElementById('rentAmount');
             const rentReceivedInput = document.getElementById('rentReceived');
-            const maintenanceInput = document.getElementById('maintenance');
+            const heatingInput = document.getElementById('heating');
+            const zhekInput = document.getElementById('zhek');
             const overhaulInput = document.getElementById('overhaul');
             const coldWaterInput = document.getElementById('coldWater');
             const hotWaterInput = document.getElementById('hotWater');
@@ -602,11 +612,12 @@
             const totalRent = document.getElementById('totalRent');
             const totalUtilities = document.getElementById('totalUtilities');
             const totalIncome = document.getElementById('totalIncome');
-            const totalMaintenance = document.getElementById('totalMaintenance');
+            const taxAmount = document.getElementById('taxAmount');
+            const totalHeating = document.getElementById('totalHeating');
+            const totalZhek = document.getElementById('totalZhek');
             const totalOverhaul = document.getElementById('totalOverhaul');
             const totalExpenses = document.getElementById('totalExpenses');
-            const profitBeforeTax = document.getElementById('profitBeforeTax');
-            const taxAmount = document.getElementById('taxAmount');
+            const incomeAfterTax = document.getElementById('incomeAfterTax');
             const netProfit = document.getElementById('netProfit');
             
             // Таблицы
@@ -823,7 +834,8 @@
                 const apartmentId = apartmentSelect.value;
                 const rentAmount = parseFloat(rentAmountInput.value) || 0;
                 const rentReceived = parseFloat(rentReceivedInput.value) || 0;
-                const maintenance = parseFloat(maintenanceInput.value) || 0;
+                const heating = parseFloat(heatingInput.value) || 0;
+                const zhek = parseFloat(zhekInput.value) || 0;
                 const overhaul = parseFloat(overhaulInput.value) || 0;
                 const utilitiesReceived = parseFloat(utilitiesReceivedInput.value) || 0;
                 
@@ -852,7 +864,8 @@
                     apartmentId: apartmentId,
                     rentAmount: rentAmount,
                     rentReceived: rentReceived,
-                    maintenance: maintenance,
+                    heating: heating,
+                    zhek: zhek,
                     overhaul: overhaul,
                     utilities: {
                         coldWater: coldWater,
@@ -959,7 +972,8 @@
                     apartmentSelect.value = payment.apartmentId;
                     rentAmountInput.value = payment.rentAmount;
                     rentReceivedInput.value = payment.rentReceived;
-                    maintenanceInput.value = payment.maintenance;
+                    heatingInput.value = payment.heating;
+                    zhekInput.value = payment.zhek;
                     overhaulInput.value = payment.overhaul;
                     coldWaterInput.value = payment.utilities.coldWater;
                     hotWaterInput.value = payment.utilities.hotWater;
@@ -1099,38 +1113,37 @@
                 }
                 
                 // Расчет итогов
-                let totalRentAmount = 0;
                 let totalRentReceived = 0;
-                let totalUtilitiesAmount = 0;
                 let totalUtilitiesReceived = 0;
-                let totalMaintenanceAmount = 0;
+                let totalHeatingAmount = 0;
+                let totalZhekAmount = 0;
                 let totalOverhaulAmount = 0;
                 
                 filteredPayments.forEach(payment => {
-                    totalRentAmount += payment.rentAmount;
                     totalRentReceived += payment.rentReceived;
-                    totalUtilitiesAmount += payment.utilities.total;
                     totalUtilitiesReceived += payment.utilitiesReceived;
-                    totalMaintenanceAmount += payment.maintenance;
+                    totalHeatingAmount += payment.heating;
+                    totalZhekAmount += payment.zhek;
                     totalOverhaulAmount += payment.overhaul;
                 });
                 
-                // Расчет прибыли
+                // Расчет прибыли по новой формуле
                 const totalIncomeAmount = totalRentReceived + totalUtilitiesReceived;
-                const totalExpensesAmount = totalMaintenanceAmount + totalOverhaulAmount;
-                const profitBeforeTaxAmount = totalIncomeAmount - totalExpensesAmount;
-                const taxAmountValue = profitBeforeTaxAmount * 0.04;
-                const netProfitAmount = profitBeforeTaxAmount - taxAmountValue;
+                const taxAmountValue = totalIncomeAmount * 0.04;
+                const incomeAfterTaxAmount = totalIncomeAmount - taxAmountValue;
+                const totalExpensesAmount = totalHeatingAmount + totalZhekAmount + totalOverhaulAmount;
+                const netProfitAmount = incomeAfterTaxAmount - totalExpensesAmount;
                 
                 // Обновление интерфейса
                 totalRent.textContent = totalRentReceived.toFixed(2) + ' руб.';
                 totalUtilities.textContent = totalUtilitiesReceived.toFixed(2) + ' руб.';
                 totalIncome.textContent = totalIncomeAmount.toFixed(2) + ' руб.';
-                totalMaintenance.textContent = totalMaintenanceAmount.toFixed(2) + ' руб.';
+                taxAmount.textContent = taxAmountValue.toFixed(2) + ' руб.';
+                totalHeating.textContent = totalHeatingAmount.toFixed(2) + ' руб.';
+                totalZhek.textContent = totalZhekAmount.toFixed(2) + ' руб.';
                 totalOverhaul.textContent = totalOverhaulAmount.toFixed(2) + ' руб.';
                 totalExpenses.textContent = totalExpensesAmount.toFixed(2) + ' руб.';
-                profitBeforeTax.textContent = profitBeforeTaxAmount.toFixed(2) + ' руб.';
-                taxAmount.textContent = taxAmountValue.toFixed(2) + ' руб.';
+                incomeAfterTax.textContent = incomeAfterTaxAmount.toFixed(2) + ' руб.';
                 netProfit.textContent = netProfitAmount.toFixed(2) + ' руб.';
                 
                 // Обновление графика
@@ -1155,31 +1168,30 @@
                             label: `${monthNames[parseInt(payment.month) - 1]} ${payment.year}`,
                             rentReceived: 0,
                             utilitiesReceived: 0,
-                            maintenance: 0,
+                            heating: 0,
+                            zhek: 0,
                             overhaul: 0
                         };
                     }
                     
                     monthlyData[key].rentReceived += payment.rentReceived;
                     monthlyData[key].utilitiesReceived += payment.utilitiesReceived;
-                    monthlyData[key].maintenance += payment.maintenance;
+                    monthlyData[key].heating += payment.heating;
+                    monthlyData[key].zhek += payment.zhek;
                     monthlyData[key].overhaul += payment.overhaul;
                 });
                 
                 // Сортировка по дате
                 const sortedKeys = Object.keys(monthlyData).sort();
                 const labels = sortedKeys.map(key => monthlyData[key].label);
-                const rentData = sortedKeys.map(key => monthlyData[key].rentReceived);
-                const utilitiesData = sortedKeys.map(key => monthlyData[key].utilitiesReceived);
-                const maintenanceData = sortedKeys.map(key => monthlyData[key].maintenance);
-                const overhaulData = sortedKeys.map(key => monthlyData[key].overhaul);
                 
-                // Расчет прибыли по месяцам
+                // Расчет чистой прибыли по месяцам
                 const profitData = sortedKeys.map(key => {
                     const data = monthlyData[key];
                     const income = data.rentReceived + data.utilitiesReceived;
-                    const expenses = data.maintenance + data.overhaul;
-                    return income - expenses - ((income - expenses) * 0.04);
+                    const tax = income * 0.04;
+                    const expenses = data.heating + data.zhek + data.overhaul;
+                    return income - tax - expenses;
                 });
                 
                 // Уничтожение предыдущего графика, если он существует
@@ -1243,7 +1255,7 @@
                 }
                 
                 // Создание CSV-строки
-                let csv = 'Месяц/Год;Квартира;Аренда (руб.);Поступило аренды (руб.);Холодная вода (руб.);Горячая вода (руб.);Водоотведение (руб.);Электроэнергия (руб.);Итого коммунальные (руб.);Поступило коммунальных (руб.);Текущий ремонт (руб.);Капремонт (руб.)\n';
+                let csv = 'Месяц/Год;Квартира;Аренда (руб.);Поступило аренды (руб.);Холодная вода (руб.);Горячая вода (руб.);Водоотведение (руб.);Электроэнергия (руб.);Итого коммунальные (руб.);Поступило коммунальных (руб.);Отопление (руб.);ЖЭК (руб.);Капремонт (руб.)\n';
                 
                 const monthNames = [
                     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -1255,7 +1267,7 @@
                     const apartment = apartments.find(a => a.id == payment.apartmentId) || { address: 'Неизвестно' };
                     
                     const monthYear = `${monthNames[parseInt(payment.month) - 1]} ${payment.year}`;
-                    csv += `${monthYear};${apartment.address};${payment.rentAmount.toFixed(2)};${payment.rentReceived.toFixed(2)};${payment.utilities.coldWaterCost.toFixed(2)};${payment.utilities.hotWaterCost.toFixed(2)};${payment.utilities.drainageCost.toFixed(2)};${payment.utilities.electricityCost.toFixed(2)};${payment.utilities.total.toFixed(2)};${payment.utilitiesReceived.toFixed(2)};${payment.maintenance.toFixed(2)};${payment.overhaul.toFixed(2)}\n`;
+                    csv += `${monthYear};${apartment.address};${payment.rentAmount.toFixed(2)};${payment.rentReceived.toFixed(2)};${payment.utilities.coldWaterCost.toFixed(2)};${payment.utilities.hotWaterCost.toFixed(2)};${payment.utilities.drainageCost.toFixed(2)};${payment.utilities.electricityCost.toFixed(2)};${payment.utilities.total.toFixed(2)};${payment.utilitiesReceived.toFixed(2)};${payment.heating.toFixed(2)};${payment.zhek.toFixed(2)};${payment.overhaul.toFixed(2)}\n`;
                 });
                 
                 // Создание и скачивание файла
@@ -1291,7 +1303,8 @@
                 if (confirm('Вы уверены, что хотите очистить форму?')) {
                     rentAmountInput.value = '';
                     rentReceivedInput.value = '';
-                    maintenanceInput.value = '0';
+                    heatingInput.value = '0';
+                    zhekInput.value = '0';
                     overhaulInput.value = '0';
                     coldWaterInput.value = '';
                     hotWaterInput.value = '';
