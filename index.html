@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Учет коммунальных платежей и аренды</title>
+    <title>Учет аренды и коммунальных платежей</title>
     <style>
         :root {
             --primary-color: #3498db;
@@ -12,6 +12,7 @@
             --warning-color: #f39c12;
             --light-color: #f8f9fa;
             --dark-color: #343a40;
+            --sidebar-width: 250px;
         }
         
         * {
@@ -25,45 +26,75 @@
             background-color: #f5f5f5;
             color: #333;
             line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
         }
         
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+        .app-container {
+            display: flex;
+            height: 100vh;
         }
         
-        header {
+        .sidebar {
+            width: var(--sidebar-width);
             background-color: var(--primary-color);
             color: white;
             padding: 20px 0;
-            text-align: center;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            overflow-y: auto;
         }
         
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
         }
         
-        .tab {
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 20px;
+        }
+        
+        .menu-item {
             padding: 12px 20px;
             cursor: pointer;
             transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
         }
         
-        .tab.active {
-            background-color: var(--primary-color);
-            color: white;
+        .menu-item.active {
+            background-color: rgba(255,255,255,0.2);
         }
         
-        .tab:hover:not(.active) {
-            background-color: #e9ecef;
+        .menu-item:hover:not(.active) {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .menu-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .content-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
         }
         
         .tab-content {
@@ -253,7 +284,29 @@
             padding-bottom: 10px;
         }
         
+        .month-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .profit-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
         @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
             .dashboard {
                 grid-template-columns: 1fr;
             }
@@ -261,45 +314,209 @@
             .actions {
                 flex-direction: column;
             }
-            
-            .tabs {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Учет коммунальных платежей и аренды</h1>
-            <p>Статистика и расчеты по квартирным платежам</p>
-        </header>
-        
-        <div id="notification" class="notification"></div>
-        
-        <div class="apartment-selector">
-            <label for="apartmentSelect">Квартира:</label>
-            <select id="apartmentSelect">
-                <option value="all">Все квартиры</option>
-                <!-- Квартиры будут добавляться динамически -->
-            </select>
-            <button id="addApartmentBtn" class="btn-success">Добавить квартиру</button>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Учет аренды</h2>
+                <p>Управление платежами</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="menu-item active" data-tab="payments">
+                    <i>📊</i> Платежи
+                </li>
+                <li class="menu-item" data-tab="tariffs">
+                    <i>💰</i> Тарифы
+                </li>
+                <li class="menu-item" data-tab="analysis">
+                    <i>📈</i> Анализ прибыли
+                </li>
+                <li class="menu-item" data-tab="history">
+                    <i>📋</i> История по месяцам
+                </li>
+            </ul>
         </div>
         
-        <div class="tabs">
-            <div class="tab active" data-tab="payments">Платежи</div>
-            <div class="tab" data-tab="tariffs">Справочник тарифов</div>
-            <div class="tab" data-tab="analysis">Анализ прибыли</div>
-        </div>
-        
-        <!-- Вкладка платежей -->
-        <div id="payments" class="tab-content active">
-            <div class="dashboard">
-                <div class="card">
-                    <h3>Данные об аренде</h3>
-                    <div class="form-group">
-                        <label for="month">Месяц</label>
-                        <select id="month">
+        <div class="main-content">
+            <div class="header">
+                <h1 id="pageTitle">Платежи</h1>
+                <div class="apartment-selector">
+                    <label for="apartmentSelect">Квартира:</label>
+                    <select id="apartmentSelect">
+                        <option value="all">Все квартиры</option>
+                    </select>
+                    <button id="addApartmentBtn" class="btn-success">+ Квартира</button>
+                </div>
+            </div>
+            
+            <div class="content-area">
+                <div id="notification" class="notification"></div>
+                
+                <!-- Вкладка платежей -->
+                <div id="payments" class="tab-content active">
+                    <div class="dashboard">
+                        <div class="card">
+                            <h3>Данные об аренде</h3>
+                            <div class="form-group">
+                                <label for="month">Месяц</label>
+                                <select id="month">
+                                    <option value="1">Январь</option>
+                                    <option value="2">Февраль</option>
+                                    <option value="3">Март</option>
+                                    <option value="4">Апрель</option>
+                                    <option value="5">Май</option>
+                                    <option value="6">Июнь</option>
+                                    <option value="7">Июль</option>
+                                    <option value="8">Август</option>
+                                    <option value="9">Сентябрь</option>
+                                    <option value="10">Октябрь</option>
+                                    <option value="11">Ноябрь</option>
+                                    <option value="12">Декабрь</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="year">Год</label>
+                                <input type="number" id="year" min="2020" max="2030" value="2023">
+                            </div>
+                            <div class="form-group">
+                                <label for="rentAmount">Сумма аренды (руб.)</label>
+                                <input type="number" id="rentAmount" min="0" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="rentReceived">Поступившая сумма аренды (руб.)</label>
+                                <input type="number" id="rentReceived" min="0" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3>Коммунальные услуги (от арендаторов)</h3>
+                            <div class="form-group">
+                                <label for="coldWater">Холодная вода (м³)</label>
+                                <input type="number" id="coldWater" min="0" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="hotWater">Горячая вода (м³)</label>
+                                <input type="number" id="hotWater" min="0" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="electricity">Электроэнергия (кВт·ч)</label>
+                                <input type="number" id="electricity" min="0" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label for="utilitiesReceived">Поступившая сумма за коммунальные услуги (руб.)</label>
+                                <input type="number" id="utilitiesReceived" min="0" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3>Расходы (оплачиваются владельцем)</h3>
+                            <div class="form-group">
+                                <label for="heating">Отопление (руб.)</label>
+                                <input type="number" id="heating" min="0" step="0.01" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="zhek">ЖЭК (руб.)</label>
+                                <input type="number" id="zhek" min="0" step="0.01" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="overhaul">Капитальный ремонт (руб.)</label>
+                                <input type="number" id="overhaul" min="0" step="0.01" value="0">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="tariffDate">Дата для расчета тарифов</label>
+                                <input type="date" id="tariffDate">
+                            </div>
+                            
+                            <div class="summary">
+                                <h4>Расчет коммунальных услуг</h4>
+                                <div class="summary-item">
+                                    <span>Холодная вода:</span>
+                                    <span id="coldWaterCalc">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Горячая вода:</span>
+                                    <span id="hotWaterCalc">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Водоотведение:</span>
+                                    <span id="drainageCalc">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Электроэнергия:</span>
+                                    <span id="electricityCalc">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item summary-total">
+                                    <span>Итого коммунальные услуги:</span>
+                                    <span id="utilitiesTotal">0.00 руб.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <button id="calculateBtn" class="btn-success">Рассчитать</button>
+                        <button id="saveBtn">Сохранить данные</button>
+                        <button id="exportBtn">Экспорт в Excel</button>
+                        <button id="emailBtn">Отправить на email</button>
+                        <button id="clearBtn" class="btn-danger">Очистить форму</button>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>История платежей</h3>
+                        <table id="paymentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Месяц/Год</th>
+                                    <th>Квартира</th>
+                                    <th>Аренда (руб.)</th>
+                                    <th>Поступило аренды (руб.)</th>
+                                    <th>Коммунальные (руб.)</th>
+                                    <th>Поступило коммунальных (руб.)</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsBody">
+                                <!-- Данные будут добавляться динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Вкладка справочника тарифов -->
+                <div id="tariffs" class="tab-content">
+                    <div class="actions">
+                        <button id="addTariffBtn" class="btn-success">Добавить тариф</button>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Справочник тарифов</h3>
+                        <table id="tariffsTable">
+                            <thead>
+                                <tr>
+                                    <th>Услуга</th>
+                                    <th>Тариф (руб.)</th>
+                                    <th>Дата начала</th>
+                                    <th>Квартира</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tariffsBody">
+                                <!-- Данные будут добавляться динамически -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Вкладка анализа прибыли -->
+                <div id="analysis" class="tab-content">
+                    <div class="month-selector">
+                        <label for="analysisMonth">Месяц:</label>
+                        <select id="analysisMonth">
+                            <option value="all">Все месяцы</option>
                             <option value="1">Январь</option>
                             <option value="2">Февраль</option>
                             <option value="3">Март</option>
@@ -313,208 +530,102 @@
                             <option value="11">Ноябрь</option>
                             <option value="12">Декабрь</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="year">Год</label>
-                        <input type="number" id="year" min="2020" max="2030" value="2023">
-                    </div>
-                    <div class="form-group">
-                        <label for="rentAmount">Сумма аренды (руб.)</label>
-                        <input type="number" id="rentAmount" min="0" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="rentReceived">Поступившая сумма аренды (руб.)</label>
-                        <input type="number" id="rentReceived" min="0" step="0.01">
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <h3>Коммунальные услуги (от арендаторов)</h3>
-                    <div class="form-group">
-                        <label for="coldWater">Холодная вода (м³)</label>
-                        <input type="number" id="coldWater" min="0" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="hotWater">Горячая вода (м³)</label>
-                        <input type="number" id="hotWater" min="0" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="electricity">Электроэнергия (кВт·ч)</label>
-                        <input type="number" id="electricity" min="0" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="utilitiesReceived">Поступившая сумма за коммунальные услуги (руб.)</label>
-                        <input type="number" id="utilitiesReceived" min="0" step="0.01">
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <h3>Расходы (оплачиваются владельцем)</h3>
-                    <div class="form-group">
-                        <label for="heating">Отопление (руб.)</label>
-                        <input type="number" id="heating" min="0" step="0.01" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="zhek">ЖЭК (руб.)</label>
-                        <input type="number" id="zhek" min="0" step="0.01" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="overhaul">Капитальный ремонт (руб.)</label>
-                        <input type="number" id="overhaul" min="0" step="0.01" value="0">
+                        <label for="analysisYear">Год:</label>
+                        <input type="number" id="analysisYear" min="2020" max="2030" value="2023">
+                        <button id="updateAnalysisBtn" class="btn-success">Обновить анализ</button>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="tariffDate">Дата для расчета тарифов</label>
-                        <input type="date" id="tariffDate">
-                    </div>
-                    
-                    <div class="summary">
-                        <h4>Расчет коммунальных услуг</h4>
-                        <div class="summary-item">
-                            <span>Холодная вода:</span>
-                            <span id="coldWaterCalc">0.00 руб.</span>
+                    <div class="card">
+                        <h3>Анализ прибыли за <span id="analysisPeriod"></span></h3>
+                        <div class="profit-analysis">
+                            <div class="profit-card">
+                                <h4>Доходы</h4>
+                                <div class="summary-item">
+                                    <span>Аренда (поступило):</span>
+                                    <span id="totalRent">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Коммунальные (поступило):</span>
+                                    <span id="totalUtilities">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item summary-total">
+                                    <span>Всего доходов:</span>
+                                    <span id="totalIncome">0.00 руб.</span>
+                                </div>
+                            </div>
+                            
+                            <div class="profit-card">
+                                <h4>Расходы и налоги</h4>
+                                <div class="summary-item">
+                                    <span>Налог (4% с доходов):</span>
+                                    <span id="taxAmount">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Отопление:</span>
+                                    <span id="totalHeating">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>ЖЭК:</span>
+                                    <span id="totalZhek">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Капитальный ремонт:</span>
+                                    <span id="totalOverhaul">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item summary-total">
+                                    <span>Всего расходов:</span>
+                                    <span id="totalExpenses">0.00 руб.</span>
+                                </div>
+                            </div>
+                            
+                            <div class="profit-card">
+                                <h4>Прибыль</h4>
+                                <div class="summary-item">
+                                    <span>Доходы за вычетом налога:</span>
+                                    <span id="incomeAfterTax">0.00 руб.</span>
+                                </div>
+                                <div class="summary-item summary-total">
+                                    <span>Чистая прибыль:</span>
+                                    <span id="netProfit">0.00 руб.</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="summary-item">
-                            <span>Горячая вода:</span>
-                            <span id="hotWaterCalc">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Водоотведение:</span>
-                            <span id="drainageCalc">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Электроэнергия:</span>
-                            <span id="electricityCalc">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item summary-total">
-                            <span>Итого коммунальные услуги:</span>
-                            <span id="utilitiesTotal">0.00 руб.</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="actions">
-                <button id="calculateBtn" class="btn-success">Рассчитать</button>
-                <button id="saveBtn">Сохранить данные</button>
-                <button id="exportBtn">Экспорт в Excel</button>
-                <button id="emailBtn">Отправить на email</button>
-                <button id="clearBtn" class="btn-danger">Очистить форму</button>
-            </div>
-            
-            <div class="card">
-                <h3>История платежей</h3>
-                <table id="paymentsTable">
-                    <thead>
-                        <tr>
-                            <th>Месяц/Год</th>
-                            <th>Квартира</th>
-                            <th>Аренда (руб.)</th>
-                            <th>Поступило аренды (руб.)</th>
-                            <th>Коммунальные (руб.)</th>
-                            <th>Поступило коммунальных (руб.)</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody id="paymentsBody">
-                        <!-- Данные будут добавляться динамически -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Вкладка справочника тарифов -->
-        <div id="tariffs" class="tab-content">
-            <div class="actions">
-                <button id="addTariffBtn" class="btn-success">Добавить тариф</button>
-            </div>
-            
-            <div class="card">
-                <h3>Справочник тарифов</h3>
-                <table id="tariffsTable">
-                    <thead>
-                        <tr>
-                            <th>Услуга</th>
-                            <th>Тариф (руб.)</th>
-                            <th>Дата начала</th>
-                            <th>Квартира</th>
-                            <th>Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tariffsBody">
-                        <!-- Данные будут добавляться динамически -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Вкладка анализа прибыли -->
-        <div id="analysis" class="tab-content">
-            <div class="card">
-                <h3>Анализ прибыли</h3>
-                <div class="profit-analysis">
-                    <div class="profit-card">
-                        <h4>Доходы</h4>
-                        <div class="summary-item">
-                            <span>Аренда (поступило):</span>
-                            <span id="totalRent">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Коммунальные (поступило):</span>
-                            <span id="totalUtilities">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item summary-total">
-                            <span>Всего доходов:</span>
-                            <span id="totalIncome">0.00 руб.</span>
-                        </div>
-                    </div>
-                    
-                    <div class="profit-card">
-                        <h4>Расходы и налоги</h4>
-                        <div class="summary-item">
-                            <span>Налог (4% с доходов):</span>
-                            <span id="taxAmount">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Отопление:</span>
-                            <span id="totalHeating">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>ЖЭК:</span>
-                            <span id="totalZhek">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Капитальный ремонт:</span>
-                            <span id="totalOverhaul">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item summary-total">
-                            <span>Всего расходов:</span>
-                            <span id="totalExpenses">0.00 руб.</span>
-                        </div>
-                    </div>
-                    
-                    <div class="profit-card">
-                        <h4>Прибыль</h4>
-                        <div class="summary-item">
-                            <span>Доходы за вычетом налога:</span>
-                            <span id="incomeAfterTax">0.00 руб.</span>
-                        </div>
-                        <div class="summary-item summary-total">
-                            <span>Чистая прибыль:</span>
-                            <span id="netProfit">0.00 руб.</span>
+                        
+                        <div class="card" style="margin-top: 20px;">
+                            <h4>График прибыли по месяцам</h4>
+                            <canvas id="profitChart" width="400" height="200"></canvas>
                         </div>
                     </div>
                 </div>
                 
-                <div class="card" style="margin-top: 20px;">
-                    <h4>График прибыли по месяцам</h4>
-                    <canvas id="profitChart" width="400" height="200"></canvas>
+                <!-- Вкладка истории по месяцам -->
+                <div id="history" class="tab-content">
+                    <div class="card">
+                        <h3>Анализ доходов, расходов и прибыли по всем квартирам</h3>
+                        <div class="profit-table-container">
+                            <table id="profitHistoryTable">
+                                <thead>
+                                    <tr>
+                                        <th>Месяц/Год</th>
+                                        <th>Квартира</th>
+                                        <th>Доходы (руб.)</th>
+                                        <th>Налог (руб.)</th>
+                                        <th>Расходы (руб.)</th>
+                                        <th>Прибыль (руб.)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profitHistoryBody">
+                                    <!-- Данные будут добавляться динамически -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно для добавления квартиры -->
+    <!-- Модальные окна -->
     <div id="apartmentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px;">
             <h3>Добавить квартиру</h3>
@@ -529,7 +640,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно для добавления тарифа -->
     <div id="tariffModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px;">
             <h3>Добавить тариф</h3>
@@ -576,8 +686,10 @@
             const addApartmentBtn = document.getElementById('addApartmentBtn');
             const addTariffBtn = document.getElementById('addTariffBtn');
             const apartmentSelect = document.getElementById('apartmentSelect');
-            const tabs = document.querySelectorAll('.tab');
+            const updateAnalysisBtn = document.getElementById('updateAnalysisBtn');
+            const menuItems = document.querySelectorAll('.menu-item');
             const tabContents = document.querySelectorAll('.tab-content');
+            const pageTitle = document.getElementById('pageTitle');
             
             // Модальные окна
             const apartmentModal = document.getElementById('apartmentModal');
@@ -601,6 +713,11 @@
             const utilitiesReceivedInput = document.getElementById('utilitiesReceived');
             const tariffDateInput = document.getElementById('tariffDate');
             
+            // Анализ прибыли
+            const analysisMonthSelect = document.getElementById('analysisMonth');
+            const analysisYearInput = document.getElementById('analysisYear');
+            const analysisPeriod = document.getElementById('analysisPeriod');
+            
             // Элементы для отображения расчетов
             const coldWaterCalc = document.getElementById('coldWaterCalc');
             const hotWaterCalc = document.getElementById('hotWaterCalc');
@@ -623,6 +740,7 @@
             // Таблицы
             const paymentsBody = document.getElementById('paymentsBody');
             const tariffsBody = document.getElementById('tariffsBody');
+            const profitHistoryBody = document.getElementById('profitHistoryBody');
             
             // График
             let profitChart = null;
@@ -632,25 +750,34 @@
             tariffDateInput.value = today.toISOString().split('T')[0];
             document.getElementById('tariffStartDate').value = today.toISOString().split('T')[0];
             
+            // Установка текущего месяца и года для анализа
+            analysisMonthSelect.value = today.getMonth() + 1;
+            analysisYearInput.value = today.getFullYear();
+            
             // Инициализация данных из localStorage
             initData();
             
-            // События для вкладок
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
+            // События для меню
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
                     const tabId = this.getAttribute('data-tab');
                     
-                    // Убираем активный класс у всех вкладок и контента
-                    tabs.forEach(t => t.classList.remove('active'));
+                    // Убираем активный класс у всех пунктов меню и контента
+                    menuItems.forEach(mi => mi.classList.remove('active'));
                     tabContents.forEach(tc => tc.classList.remove('active'));
                     
-                    // Добавляем активный класс текущей вкладке и контенту
+                    // Добавляем активный класс текущему пункту меню и контенту
                     this.classList.add('active');
                     document.getElementById(tabId).classList.add('active');
+                    
+                    // Обновляем заголовок страницы
+                    pageTitle.textContent = this.textContent.trim();
                     
                     // Если открыта вкладка анализа, обновляем анализ
                     if (tabId === 'analysis') {
                         updateProfitAnalysis();
+                    } else if (tabId === 'history') {
+                        updateProfitHistory();
                     }
                 });
             });
@@ -709,6 +836,9 @@
                 tariffModal.style.display = 'none';
                 document.getElementById('tariffValue').value = '';
             });
+            
+            // Событие для кнопки обновления анализа
+            updateAnalysisBtn.addEventListener('click', updateProfitAnalysis);
             
             // Автоматический расчет при изменении значений
             coldWaterInput.addEventListener('input', calculateUtilities);
@@ -856,6 +986,14 @@
                 const electricityCost = electricity * electricityTariff;
                 const totalUtilities = coldWaterCost + hotWaterCost + drainageCost + electricityCost;
                 
+                // Сохраняем использованные тарифы вместе с платежом
+                const usedTariffs = {
+                    coldWater: coldWaterTariff,
+                    hotWater: hotWaterTariff,
+                    drainage: drainageTariff,
+                    electricity: electricityTariff
+                };
+                
                 // Создание объекта платежа
                 const payment = {
                     id: Date.now(),
@@ -878,6 +1016,7 @@
                         total: totalUtilities
                     },
                     utilitiesReceived: utilitiesReceived,
+                    usedTariffs: usedTariffs, // Сохраняем тарифы, использованные при расчете
                     date: new Date().toISOString()
                 };
                 
@@ -980,8 +1119,17 @@
                     electricityInput.value = payment.utilities.electricity;
                     utilitiesReceivedInput.value = payment.utilitiesReceived;
                     
-                    // Пересчет коммунальных услуг
-                    calculateUtilities();
+                    // Восстанавливаем использованные тарифы
+                    if (payment.usedTariffs) {
+                        coldWaterCalc.textContent = (payment.utilities.coldWater * payment.usedTariffs.coldWater).toFixed(2) + ' руб.';
+                        hotWaterCalc.textContent = (payment.utilities.hotWater * payment.usedTariffs.hotWater).toFixed(2) + ' руб.';
+                        drainageCalc.textContent = ((payment.utilities.coldWater + payment.utilities.hotWater) * payment.usedTariffs.drainage).toFixed(2) + ' руб.';
+                        electricityCalc.textContent = (payment.utilities.electricity * payment.usedTariffs.electricity).toFixed(2) + ' руб.';
+                        utilitiesTotal.textContent = payment.utilities.total.toFixed(2) + ' руб.';
+                    } else {
+                        // Если старые данные без сохраненных тарифов, пересчитываем
+                        calculateUtilities();
+                    }
                     
                     showNotification('Данные загружены в форму', 'success');
                 }
@@ -1105,11 +1253,29 @@
             function updateProfitAnalysis() {
                 const payments = JSON.parse(localStorage.getItem('payments')) || [];
                 const selectedApartment = apartmentSelect.value;
+                const analysisMonth = analysisMonthSelect.value;
+                const analysisYear = analysisYearInput.value;
                 
-                // Фильтрация платежей по выбранной квартире
+                // Фильтрация платежей по выбранной квартире и месяцу/году
                 let filteredPayments = payments;
                 if (selectedApartment !== 'all') {
                     filteredPayments = payments.filter(p => p.apartmentId == selectedApartment);
+                }
+                
+                if (analysisMonth !== 'all') {
+                    filteredPayments = filteredPayments.filter(p => p.month == analysisMonth && p.year == analysisYear);
+                }
+                
+                // Обновление заголовка периода анализа
+                const monthNames = [
+                    'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+                ];
+                
+                if (analysisMonth === 'all') {
+                    analysisPeriod.textContent = 'все месяцы';
+                } else {
+                    analysisPeriod.textContent = `${monthNames[parseInt(analysisMonth) - 1]} ${analysisYear}`;
                 }
                 
                 // Расчет итогов
@@ -1147,12 +1313,66 @@
                 netProfit.textContent = netProfitAmount.toFixed(2) + ' руб.';
                 
                 // Обновление графика
-                updateProfitChart(filteredPayments);
+                updateProfitChart(payments, selectedApartment);
+            }
+            
+            // Функция обновления истории прибыли
+            function updateProfitHistory() {
+                const payments = JSON.parse(localStorage.getItem('payments')) || [];
+                const apartments = JSON.parse(localStorage.getItem('apartments')) || [];
+                profitHistoryBody.innerHTML = '';
+                
+                if (payments.length === 0) {
+                    profitHistoryBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Нет данных для отображения</td></tr>';
+                    return;
+                }
+                
+                // Сортировка платежей по дате (сначала старые)
+                payments.sort((a, b) => {
+                    const dateA = new Date(a.year, a.month - 1);
+                    const dateB = new Date(b.year, b.month - 1);
+                    return dateA - dateB;
+                });
+                
+                const monthNames = [
+                    'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+                ];
+                
+                payments.forEach(payment => {
+                    const row = document.createElement('tr');
+                    
+                    // Получение адреса квартиры
+                    const apartment = apartments.find(a => a.id == payment.apartmentId) || { address: 'Неизвестно' };
+                    
+                    // Расчет показателей для таблицы
+                    const income = payment.rentReceived + payment.utilitiesReceived;
+                    const tax = income * 0.04;
+                    const expenses = payment.heating + payment.zhek + payment.overhaul;
+                    const profit = income - tax - expenses;
+                    
+                    row.innerHTML = `
+                        <td>${monthNames[parseInt(payment.month) - 1]} ${payment.year}</td>
+                        <td>${apartment.address}</td>
+                        <td>${income.toFixed(2)}</td>
+                        <td>${tax.toFixed(2)}</td>
+                        <td>${expenses.toFixed(2)}</td>
+                        <td>${profit.toFixed(2)}</td>
+                    `;
+                    
+                    profitHistoryBody.appendChild(row);
+                });
             }
             
             // Функция обновления графика прибыли
-            function updateProfitChart(payments) {
+            function updateProfitChart(payments, selectedApartment) {
                 const ctx = document.getElementById('profitChart').getContext('2d');
+                
+                // Фильтрация платежей по выбранной квартире
+                let filteredPayments = payments;
+                if (selectedApartment !== 'all') {
+                    filteredPayments = payments.filter(p => p.apartmentId == selectedApartment);
+                }
                 
                 // Группировка платежей по месяцам
                 const monthlyData = {};
@@ -1161,7 +1381,7 @@
                     'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'
                 ];
                 
-                payments.forEach(payment => {
+                filteredPayments.forEach(payment => {
                     const key = `${payment.year}-${payment.month}`;
                     if (!monthlyData[key]) {
                         monthlyData[key] = {
