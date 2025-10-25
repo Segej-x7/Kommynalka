@@ -58,6 +58,8 @@
             color: white;
             padding: 20px 0;
             overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 1000;
         }
         
         .sidebar-header {
@@ -107,6 +109,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--primary-color);
         }
         
         .content-area {
@@ -333,10 +344,11 @@
         footer {
             background-color: var(--primary-color);
             color: white;
-            padding: 15px 20px;
+            padding: 10px 20px;
             text-align: center;
             border-top: 1px solid rgba(255,255,255,0.2);
             flex-shrink: 0;
+            font-size: 14px;
         }
         
         .footer-content {
@@ -351,24 +363,59 @@
             color: white;
             text-decoration: none;
             margin-left: 15px;
+            font-size: 14px;
         }
         
         .footer-links a:hover {
             text-decoration: underline;
         }
         
-        @media (max-width: 768px) {
-            .main-wrapper {
-                flex-direction: column;
+        /* Адаптивность для планшетов и мобильных устройств */
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed;
+                height: 100vh;
+                transform: translateX(-100%);
             }
             
-            .sidebar {
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .main-content {
                 width: 100%;
-                height: auto;
             }
             
             .dashboard {
                 grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .apartment-selector {
+                flex-wrap: wrap;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+            }
+            
+            .content-area {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 15px;
             }
             
             .actions {
@@ -377,7 +424,84 @@
             
             .footer-content {
                 flex-direction: column;
-                gap: 10px;
+                gap: 5px;
+            }
+            
+            .month-selector {
+                flex-wrap: wrap;
+            }
+            
+            .profit-analysis {
+                grid-template-columns: 1fr;
+            }
+            
+            table {
+                font-size: 14px;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .content-area {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 10px;
+            }
+            
+            .form-group {
+                margin-bottom: 10px;
+            }
+            
+            input, select, button {
+                padding: 8px;
+                font-size: 14px;
+            }
+            
+            .footer-content {
+                font-size: 12px;
+            }
+            
+            .footer-links a {
+                margin-left: 10px;
+                font-size: 12px;
+            }
+        }
+        
+        /* Поддержка ориентации для планшетов */
+        @media (max-width: 1024px) and (orientation: landscape) {
+            .sidebar {
+                width: 200px;
+            }
+            
+            .content-area {
+                padding: 15px;
+            }
+            
+            .dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) and (orientation: landscape) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 10px 15px;
+            }
+            
+            .content-area {
+                padding: 10px;
             }
         }
     </style>
@@ -408,6 +532,7 @@
             
             <div class="main-content">
                 <div class="header">
+                    <button class="menu-toggle">☰</button>
                     <h1 id="pageTitle">Платежи</h1>
                     <div class="apartment-selector">
                         <label for="apartmentSelect">Квартира:</label>
@@ -427,28 +552,25 @@
                             <div class="card">
                                 <h3>Данные об аренде</h3>
                                 <div class="form-group">
-                                    <label for="analysisMonth">Месяц:</label>
-                                <select id="analysisMonth">
-                                <option value="all">Все месяцы</option>
-                                <option value="1">Январь</option>
-                                <option value="2">Февраль</option>
-                                <option value="3">Март</option>
-                                <option value="4">Апрель</option>
-                                <option value="5">Май</option>
-                                <option value="6">Июнь</option>
-                                <option value="7">Июль</option>
-                                <option value="8">Август</option>
-                                <option value="9">Сентябрь</option>
-                                <option value="10">Октябрь</option>
-                                <option value="11">Ноябрь</option>
-                                <option value="12">Декабрь</option>
-                               </select>
-                               <label for="analysisYear">Год:</label>
-				<input type="number" id="year" min="2020" max="2045">
-
-				<script>
-				document.getElementById('year').value = new Date().getFullYear();
-				</script>
+                                    <label for="paymentMonth">Месяц:</label>
+                                    <select id="paymentMonth">
+                                        <option value="1">Январь</option>
+                                        <option value="2">Февраль</option>
+                                        <option value="3">Март</option>
+                                        <option value="4">Апрель</option>
+                                        <option value="5">Май</option>
+                                        <option value="6">Июнь</option>
+                                        <option value="7">Июль</option>
+                                        <option value="8">Август</option>
+                                        <option value="9">Сентябрь</option>
+                                        <option value="10">Октябрь</option>
+                                        <option value="11">Ноябрь</option>
+                                        <option value="12">Декабрь</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="paymentYear">Год:</label>
+                                    <input type="number" id="paymentYear" min="2020" max="2045">
                                 </div>
                                 <div class="form-group">
                                     <label for="rentAmount">Сумма аренды (руб.)</label>
@@ -614,11 +736,7 @@
                                 <option value="12">Декабрь</option>
                             </select>
                             <label for="analysisYear">Год:</label>
-			<input type="number" id="year" min="2020" max="2045">
-
-				<script>
-			document.getElementById('year').value = new Date().getFullYear();
-			</script>
+                            <input type="number" id="analysisYear" min="2020" max="2045">
                             <button id="updateAnalysisBtn" class="btn-success">Обновить анализ</button>
                         </div>
                         
@@ -713,8 +831,7 @@
                 <!-- Футер -->
                 <footer>
                     <div class="footer-content">
-                        <div>&copy; 2025 Учет аренды и коммунальных платежей</div>
-                        <div>Версия 1.0</div>
+                        <div>&copy; 2025 Учет аренды</div>
                         <div class="footer-links">
                             <a href="#" id="helpLink">Помощь</a>
                             <a href="#" id="aboutLink">О программе</a>
@@ -791,6 +908,8 @@
             const pageTitle = document.getElementById('pageTitle');
             const helpLink = document.getElementById('helpLink');
             const aboutLink = document.getElementById('aboutLink');
+            const menuToggle = document.querySelector('.menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
             
             // Модальные окна
             const apartmentModal = document.getElementById('apartmentModal');
@@ -801,8 +920,8 @@
             const cancelTariffBtn = document.getElementById('cancelTariffBtn');
             
             // Поля ввода
-            const monthSelect = document.getElementById('month');
-            const yearInput = document.getElementById('year');
+            const monthSelect = document.getElementById('paymentMonth');
+            const yearInput = document.getElementById('paymentYear');
             const rentAmountInput = document.getElementById('rentAmount');
             const rentReceivedInput = document.getElementById('rentReceived');
             const heatingInput = document.getElementById('heating');
@@ -855,16 +974,27 @@
             tariffDateInput.value = today.toISOString().split('T')[0];
             document.getElementById('tariffStartDate').value = today.toISOString().split('T')[0];
             
-            // Установка текущего месяца и года для анализа
+            // Установка текущего месяца и года
+            monthSelect.value = today.getMonth() + 1;
+            yearInput.value = today.getFullYear();
             analysisMonthSelect.value = today.getMonth() + 1;
             analysisYearInput.value = today.getFullYear();
             
             // Инициализация данных из localStorage
             initData();
             
-            // События для меню
+            // Событие для кнопки меню
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('open');
+            });
+            
+            // Закрытие меню при клике на пункт меню на мобильных устройствах
             menuItems.forEach(item => {
                 item.addEventListener('click', function() {
+                    if (window.innerWidth <= 1024) {
+                        sidebar.classList.remove('open');
+                    }
+                    
                     const tabId = this.getAttribute('data-tab');
                     
                     // Убираем активный класс у всех пунктов меню и контента
@@ -961,6 +1091,16 @@
             
             // При смене квартиры обновляем информацию о счетчиках
             apartmentSelect.addEventListener('change', updateCountersInfo);
+            
+            // Обработчик изменения ориентации экрана
+            window.addEventListener('orientationchange', function() {
+                // Пересчитываем layout при изменении ориентации
+                setTimeout(() => {
+                    if (profitChart) {
+                        profitChart.resize();
+                    }
+                }, 300);
+            });
             
             // Функция инициализации данных
             function initData() {
