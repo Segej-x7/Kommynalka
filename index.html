@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Учет аренды и коммунальных платежей</title>
     
-   <!-- PWA мета-теги -->
-	<meta name="theme-color" content="#3498db">
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<meta name="apple-mobile-web-app-title" content="Учет аренды">
-	<link rel="manifest" href="./manifest.json">
-	<link rel="icon" type="image/png" href="./icon-192x192.png">
-	<link rel="apple-touch-icon" href="./icon-192x192.png">
+    <!-- PWA мета-теги -->
+    <meta name="theme-color" content="#3498db">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Учет аренды">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" href="./icon-192x192.png">
+    <link rel="apple-touch-icon" href="./icon-192x192.png">
     
     <style>
         :root {
@@ -315,6 +315,20 @@
             margin-top: 20px;
         }
         
+        .counters-info {
+            background-color: #e8f4fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .counter-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
         /* Стили для футера */
         footer {
             background-color: var(--primary-color);
@@ -365,26 +379,6 @@
                 flex-direction: column;
                 gap: 10px;
             }
-        }
-        
-        /* Стили для инсталляции PWA */
-        .install-prompt {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            border: 2px solid var(--primary-color);
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-            max-width: 300px;
-            display: none;
-        }
-        
-        .install-prompt button {
-            margin-top: 10px;
-            width: 100%;
         }
     </style>
 </head>
@@ -451,7 +445,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="year">Год</label>
-                                    <input type="number" id="year" min="2020" max="2030" value="2023">
+                                    <input type="number" id="year" min="2020" max="2045" value="2025">
                                 </div>
                                 <div class="form-group">
                                     <label for="rentAmount">Сумма аренды (руб.)</label>
@@ -464,18 +458,21 @@
                             </div>
                             
                             <div class="card">
-                                <h3>Коммунальные услуги (от арендаторов)</h3>
-                                <div class="form-group">
-                                    <label for="coldWater">Холодная вода (м³)</label>
-                                    <input type="number" id="coldWater" min="0" step="0.01">
+                                <h3>Показания счетчиков</h3>
+                                <div class="counters-info" id="countersInfo">
+                                    <!-- Информация о предыдущих показаниях будет здесь -->
                                 </div>
                                 <div class="form-group">
-                                    <label for="hotWater">Горячая вода (м³)</label>
-                                    <input type="number" id="hotWater" min="0" step="0.01">
+                                    <label for="coldWaterCounter">Холодная вода - текущие показания (м³)</label>
+                                    <input type="number" id="coldWaterCounter" min="0" step="0.001">
                                 </div>
                                 <div class="form-group">
-                                    <label for="electricity">Электроэнергия (кВт·ч)</label>
-                                    <input type="number" id="electricity" min="0" step="0.01">
+                                    <label for="hotWaterCounter">Горячая вода - текущие показания (м³)</label>
+                                    <input type="number" id="hotWaterCounter" min="0" step="0.001">
+                                </div>
+                                <div class="form-group">
+                                    <label for="electricityCounter">Электроэнергия - текущие показания (кВт·ч)</label>
+                                    <input type="number" id="electricityCounter" min="0" step="0.01">
                                 </div>
                                 <div class="form-group">
                                     <label for="utilitiesReceived">Поступившая сумма за коммунальные услуги (руб.)</label>
@@ -506,8 +503,16 @@
                                 <div class="summary">
                                     <h4>Расчет коммунальных услуг</h4>
                                     <div class="summary-item">
+                                        <span>Потреблено холодной воды:</span>
+                                        <span id="coldWaterConsumed">0.00 м³</span>
+                                    </div>
+                                    <div class="summary-item">
                                         <span>Холодная вода:</span>
                                         <span id="coldWaterCalc">0.00 руб.</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span>Потреблено горячей воды:</span>
+                                        <span id="hotWaterConsumed">0.00 м³</span>
                                     </div>
                                     <div class="summary-item">
                                         <span>Горячая вода:</span>
@@ -516,6 +521,10 @@
                                     <div class="summary-item">
                                         <span>Водоотведение:</span>
                                         <span id="drainageCalc">0.00 руб.</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span>Потреблено электроэнергии:</span>
+                                        <span id="electricityConsumed">0.00 кВт·ч</span>
                                     </div>
                                     <div class="summary-item">
                                         <span>Электроэнергия:</span>
@@ -533,7 +542,6 @@
                             <button id="calculateBtn" class="btn-success">Рассчитать</button>
                             <button id="saveBtn">Сохранить данные</button>
                             <button id="exportBtn">Экспорт в Excel</button>
-                            <button id="emailBtn">Отправить на email</button>
                             <button id="clearBtn" class="btn-danger">Очистить форму</button>
                         </div>
                         
@@ -603,7 +611,7 @@
                                 <option value="12">Декабрь</option>
                             </select>
                             <label for="analysisYear">Год:</label>
-                            <input type="number" id="analysisYear" min="2020" max="2030" value="2023">
+                            <input type="number" id="analysisYear" min="2020" max="2035" value="2025">
                             <button id="updateAnalysisBtn" class="btn-success">Обновить анализ</button>
                         </div>
                         
@@ -698,7 +706,7 @@
                 <!-- Футер -->
                 <footer>
                     <div class="footer-content">
-                        <div>&copy; 2024 Учет аренды и коммунальных платежей</div>
+                        <div>&copy; 2025 Учет аренды и коммунальных платежей</div>
                         <div>Версия 1.0</div>
                         <div class="footer-links">
                             <a href="#" id="helpLink">Помощь</a>
@@ -758,77 +766,13 @@
         </div>
     </div>
 
-    <!-- PWA инсталляционный промпт -->
-    <div id="installPrompt" class="install-prompt">
-        <h4>Установить приложение</h4>
-        <p>Установите приложение для быстрого доступа и работы офлайн</p>
-        <button id="installAppBtn" class="btn-success">Установить</button>
-        <button id="cancelInstallBtn" class="btn-danger">Позже</button>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // PWA функциональность
-        let deferredPrompt;
-        
-        // Обработчик события beforeinstallprompt
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Предотвращаем автоматическое отображение промпта
-            e.preventDefault();
-            // Сохраняем событие для использования позже
-            deferredPrompt = e;
-            // Показываем кнопку установки
-            showInstallPromotion();
-        });
-        
-        // Показать промпт установки
-        function showInstallPromotion() {
-            const installPrompt = document.getElementById('installPrompt');
-            installPrompt.style.display = 'block';
-        }
-        
-        // Скрыть промпт установки
-        function hideInstallPrompt() {
-            const installPrompt = document.getElementById('installPrompt');
-            installPrompt.style.display = 'none';
-        }
-        
-        // Обработчик установки приложения
-        document.getElementById('installAppBtn').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                // Показываем промпт установки
-                deferredPrompt.prompt();
-                // Ждем ответа пользователя
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('Пользователь принял установку');
-                } else {
-                    console.log('Пользователь отклонил установку');
-                }
-                // Очищаем сохраненное событие
-                deferredPrompt = null;
-                // Скрываем промпт
-                hideInstallPrompt();
-            }
-        });
-        
-        // Отмена установки
-        document.getElementById('cancelInstallBtn').addEventListener('click', () => {
-            hideInstallPrompt();
-        });
-        
-        // Обработчик успешной установки
-        window.addEventListener('appinstalled', () => {
-            console.log('PWA было установлено');
-            deferredPrompt = null;
-        });
-
         document.addEventListener('DOMContentLoaded', function() {
             // Элементы DOM
             const calculateBtn = document.getElementById('calculateBtn');
             const saveBtn = document.getElementById('saveBtn');
             const exportBtn = document.getElementById('exportBtn');
-            const emailBtn = document.getElementById('emailBtn');
             const clearBtn = document.getElementById('clearBtn');
             const notification = document.getElementById('notification');
             const addApartmentBtn = document.getElementById('addApartmentBtn');
@@ -857,23 +801,27 @@
             const heatingInput = document.getElementById('heating');
             const zhekInput = document.getElementById('zhek');
             const overhaulInput = document.getElementById('overhaul');
-            const coldWaterInput = document.getElementById('coldWater');
-            const hotWaterInput = document.getElementById('hotWater');
-            const electricityInput = document.getElementById('electricity');
+            const coldWaterCounterInput = document.getElementById('coldWaterCounter');
+            const hotWaterCounterInput = document.getElementById('hotWaterCounter');
+            const electricityCounterInput = document.getElementById('electricityCounter');
             const utilitiesReceivedInput = document.getElementById('utilitiesReceived');
             const tariffDateInput = document.getElementById('tariffDate');
             
-            // Анализ прибыли
-            const analysisMonthSelect = document.getElementById('analysisMonth');
-            const analysisYearInput = document.getElementById('analysisYear');
-            const analysisPeriod = document.getElementById('analysisPeriod');
-            
             // Элементы для отображения расчетов
+            const coldWaterConsumed = document.getElementById('coldWaterConsumed');
+            const hotWaterConsumed = document.getElementById('hotWaterConsumed');
+            const electricityConsumed = document.getElementById('electricityConsumed');
             const coldWaterCalc = document.getElementById('coldWaterCalc');
             const hotWaterCalc = document.getElementById('hotWaterCalc');
             const drainageCalc = document.getElementById('drainageCalc');
             const electricityCalc = document.getElementById('electricityCalc');
             const utilitiesTotal = document.getElementById('utilitiesTotal');
+            const countersInfo = document.getElementById('countersInfo');
+            
+            // Анализ прибыли
+            const analysisMonthSelect = document.getElementById('analysisMonth');
+            const analysisYearInput = document.getElementById('analysisYear');
+            const analysisPeriod = document.getElementById('analysisPeriod');
             
             // Элементы анализа прибыли
             const totalRent = document.getElementById('totalRent');
@@ -941,9 +889,6 @@
             // Событие для кнопки экспорта
             exportBtn.addEventListener('click', exportToExcel);
             
-            // Событие для кнопки отправки на email
-            emailBtn.addEventListener('click', sendEmail);
-            
             // Событие для кнопки очистки
             clearBtn.addEventListener('click', clearForm);
             
@@ -1002,10 +947,13 @@
             });
             
             // Автоматический расчет при изменении значений
-            coldWaterInput.addEventListener('input', calculateUtilities);
-            hotWaterInput.addEventListener('input', calculateUtilities);
-            electricityInput.addEventListener('input', calculateUtilities);
+            coldWaterCounterInput.addEventListener('input', calculateUtilities);
+            hotWaterCounterInput.addEventListener('input', calculateUtilities);
+            electricityCounterInput.addEventListener('input', calculateUtilities);
             tariffDateInput.addEventListener('change', calculateUtilities);
+            
+            // При смене квартиры обновляем информацию о счетчиках
+            apartmentSelect.addEventListener('change', updateCountersInfo);
             
             // Функция инициализации данных
             function initData() {
@@ -1018,8 +966,46 @@
                 // Загрузка тарифов
                 loadTariffs();
                 
+                // Обновляем информацию о счетчиках
+                updateCountersInfo();
+                
                 // Инициализация расчета
                 calculateUtilities();
+            }
+            
+            // Функция обновления информации о счетчиках
+            function updateCountersInfo() {
+                const apartmentId = apartmentSelect.value;
+                if (apartmentId === 'all') {
+                    countersInfo.innerHTML = '<p>Выберите конкретную квартиру для ввода показаний счетчиков</p>';
+                    return;
+                }
+                
+                const payments = JSON.parse(localStorage.getItem('payments')) || [];
+                const apartmentPayments = payments.filter(p => p.apartmentId == apartmentId)
+                    .sort((a, b) => new Date(b.year, b.month - 1) - new Date(a.year, a.month - 1));
+                
+                if (apartmentPayments.length === 0) {
+                    countersInfo.innerHTML = '<p>Нет предыдущих данных по счетчикам для этой квартиры</p>';
+                    return;
+                }
+                
+                const lastPayment = apartmentPayments[0];
+                countersInfo.innerHTML = `
+                    <p><strong>Предыдущие показания (${getMonthName(lastPayment.month)} ${lastPayment.year}):</strong></p>
+                    <div class="counter-row">
+                        <span>Холодная вода:</span>
+                        <span>${lastPayment.counters ? lastPayment.counters.coldWater.toFixed(3) : '0.000'} м³</span>
+                    </div>
+                    <div class="counter-row">
+                        <span>Горячая вода:</span>
+                        <span>${lastPayment.counters ? lastPayment.counters.hotWater.toFixed(3) : '0.000'} м³</span>
+                    </div>
+                    <div class="counter-row">
+                        <span>Электроэнергия:</span>
+                        <span>${lastPayment.counters ? lastPayment.counters.electricity.toFixed(2) : '0.00'} кВт·ч</span>
+                    </div>
+                `;
             }
             
             // Функция загрузки квартир
@@ -1071,10 +1057,36 @@
             
             // Функция расчета коммунальных услуг
             function calculateUtilities() {
-                const coldWater = parseFloat(coldWaterInput.value) || 0;
-                const hotWater = parseFloat(hotWaterInput.value) || 0;
-                const electricity = parseFloat(electricityInput.value) || 0;
+                const apartmentId = apartmentSelect.value;
+                if (apartmentId === 'all') {
+                    showNotification('Выберите конкретную квартиру для расчета', 'warning');
+                    return;
+                }
+                
+                const currentColdWater = parseFloat(coldWaterCounterInput.value) || 0;
+                const currentHotWater = parseFloat(hotWaterCounterInput.value) || 0;
+                const currentElectricity = parseFloat(electricityCounterInput.value) || 0;
                 const tariffDate = tariffDateInput.value;
+                
+                // Получение предыдущих показаний
+                const payments = JSON.parse(localStorage.getItem('payments')) || [];
+                const apartmentPayments = payments.filter(p => p.apartmentId == apartmentId)
+                    .sort((a, b) => new Date(b.year, b.month - 1) - new Date(a.year, a.month - 1));
+                
+                let previousColdWater = 0;
+                let previousHotWater = 0;
+                let previousElectricity = 0;
+                
+                if (apartmentPayments.length > 0 && apartmentPayments[0].counters) {
+                    previousColdWater = apartmentPayments[0].counters.coldWater;
+                    previousHotWater = apartmentPayments[0].counters.hotWater;
+                    previousElectricity = apartmentPayments[0].counters.electricity;
+                }
+                
+                // Расчет потребления
+                const coldWaterConsumption = Math.max(0, currentColdWater - previousColdWater);
+                const hotWaterConsumption = Math.max(0, currentHotWater - previousHotWater);
+                const electricityConsumption = Math.max(0, currentElectricity - previousElectricity);
                 
                 // Получение актуальных тарифов на указанную дату
                 const coldWaterTariff = getCurrentTariff('coldWater', tariffDate);
@@ -1082,12 +1094,16 @@
                 const drainageTariff = getCurrentTariff('drainage', tariffDate);
                 const electricityTariff = getCurrentTariff('electricity', tariffDate);
                 
-                const coldWaterCost = coldWater * coldWaterTariff;
-                const hotWaterCost = hotWater * hotWaterTariff;
-                const drainageCost = (coldWater + hotWater) * drainageTariff;
-                const electricityCost = electricity * electricityTariff;
+                const coldWaterCost = coldWaterConsumption * coldWaterTariff;
+                const hotWaterCost = hotWaterConsumption * hotWaterTariff;
+                const drainageCost = (coldWaterConsumption + hotWaterConsumption) * drainageTariff;
+                const electricityCost = electricityConsumption * electricityTariff;
                 const totalUtilitiesCost = coldWaterCost + hotWaterCost + drainageCost + electricityCost;
                 
+                // Обновление интерфейса
+                coldWaterConsumed.textContent = coldWaterConsumption.toFixed(3) + ' м³';
+                hotWaterConsumed.textContent = hotWaterConsumption.toFixed(3) + ' м³';
+                electricityConsumed.textContent = electricityConsumption.toFixed(2) + ' кВт·ч';
                 coldWaterCalc.textContent = coldWaterCost.toFixed(2) + ' руб.';
                 hotWaterCalc.textContent = hotWaterCost.toFixed(2) + ' руб.';
                 drainageCalc.textContent = drainageCost.toFixed(2) + ' руб.';
@@ -1130,21 +1146,47 @@
                 const overhaul = parseFloat(overhaulInput.value) || 0;
                 const utilitiesReceived = parseFloat(utilitiesReceivedInput.value) || 0;
                 
-                // Расчет коммунальных услуг
-                const coldWater = parseFloat(coldWaterInput.value) || 0;
-                const hotWater = parseFloat(hotWaterInput.value) || 0;
-                const electricity = parseFloat(electricityInput.value) || 0;
+                if (apartmentId === 'all') {
+                    showNotification('Выберите конкретную квартиру для сохранения', 'error');
+                    return;
+                }
+                
+                // Текущие показания счетчиков
+                const currentColdWater = parseFloat(coldWaterCounterInput.value) || 0;
+                const currentHotWater = parseFloat(hotWaterCounterInput.value) || 0;
+                const currentElectricity = parseFloat(electricityCounterInput.value) || 0;
                 const tariffDate = tariffDateInput.value;
                 
+                // Получение предыдущих показаний для расчета потребления
+                const payments = JSON.parse(localStorage.getItem('payments')) || [];
+                const apartmentPayments = payments.filter(p => p.apartmentId == apartmentId)
+                    .sort((a, b) => new Date(b.year, b.month - 1) - new Date(a.year, a.month - 1));
+                
+                let previousColdWater = 0;
+                let previousHotWater = 0;
+                let previousElectricity = 0;
+                
+                if (apartmentPayments.length > 0 && apartmentPayments[0].counters) {
+                    previousColdWater = apartmentPayments[0].counters.coldWater;
+                    previousHotWater = apartmentPayments[0].counters.hotWater;
+                    previousElectricity = apartmentPayments[0].counters.electricity;
+                }
+                
+                // Расчет потребления
+                const coldWaterConsumption = Math.max(0, currentColdWater - previousColdWater);
+                const hotWaterConsumption = Math.max(0, currentHotWater - previousHotWater);
+                const electricityConsumption = Math.max(0, currentElectricity - previousElectricity);
+                
+                // Получение тарифов
                 const coldWaterTariff = getCurrentTariff('coldWater', tariffDate);
                 const hotWaterTariff = getCurrentTariff('hotWater', tariffDate);
                 const drainageTariff = getCurrentTariff('drainage', tariffDate);
                 const electricityTariff = getCurrentTariff('electricity', tariffDate);
                 
-                const coldWaterCost = coldWater * coldWaterTariff;
-                const hotWaterCost = hotWater * hotWaterTariff;
-                const drainageCost = (coldWater + hotWater) * drainageTariff;
-                const electricityCost = electricity * electricityTariff;
+                const coldWaterCost = coldWaterConsumption * coldWaterTariff;
+                const hotWaterCost = hotWaterConsumption * hotWaterTariff;
+                const drainageCost = (coldWaterConsumption + hotWaterConsumption) * drainageTariff;
+                const electricityCost = electricityConsumption * electricityTariff;
                 const totalUtilities = coldWaterCost + hotWaterCost + drainageCost + electricityCost;
                 
                 // Сохраняем использованные тарифы вместе с платежом
@@ -1167,9 +1209,9 @@
                     zhek: zhek,
                     overhaul: overhaul,
                     utilities: {
-                        coldWater: coldWater,
-                        hotWater: hotWater,
-                        electricity: electricity,
+                        coldWater: coldWaterConsumption,
+                        hotWater: hotWaterConsumption,
+                        electricity: electricityConsumption,
                         coldWaterCost: coldWaterCost,
                         hotWaterCost: hotWaterCost,
                         drainageCost: drainageCost,
@@ -1177,30 +1219,38 @@
                         total: totalUtilities
                     },
                     utilitiesReceived: utilitiesReceived,
-                    usedTariffs: usedTariffs, // Сохраняем тарифы, использованные при расчете
+                    counters: {
+                        coldWater: currentColdWater,
+                        hotWater: currentHotWater,
+                        electricity: currentElectricity
+                    },
+                    usedTariffs: usedTariffs,
                     date: new Date().toISOString()
                 };
                 
                 // Получение существующих платежей из localStorage
-                let payments = JSON.parse(localStorage.getItem('payments')) || [];
+                let allPayments = JSON.parse(localStorage.getItem('payments')) || [];
                 
                 // Проверка на дублирование записи за тот же месяц, год и квартиру
-                const existingIndex = payments.findIndex(p => 
+                const existingIndex = allPayments.findIndex(p => 
                     p.month === payment.month && p.year === payment.year && p.apartmentId === payment.apartmentId);
                 
                 if (existingIndex !== -1) {
-                    payments[existingIndex] = payment;
+                    allPayments[existingIndex] = payment;
                     showNotification('Данные за выбранный месяц обновлены', 'success');
                 } else {
-                    payments.push(payment);
+                    allPayments.push(payment);
                     showNotification('Данные успешно сохранены', 'success');
                 }
                 
                 // Сохранение в localStorage
-                localStorage.setItem('payments', JSON.stringify(payments));
+                localStorage.setItem('payments', JSON.stringify(allPayments));
                 
                 // Обновление таблицы
                 loadPayments();
+                
+                // Обновляем информацию о счетчиках
+                updateCountersInfo();
             }
             
             // Функция загрузки платежей из localStorage
@@ -1275,17 +1325,20 @@
                     heatingInput.value = payment.heating;
                     zhekInput.value = payment.zhek;
                     overhaulInput.value = payment.overhaul;
-                    coldWaterInput.value = payment.utilities.coldWater;
-                    hotWaterInput.value = payment.utilities.hotWater;
-                    electricityInput.value = payment.utilities.electricity;
+                    coldWaterCounterInput.value = payment.counters ? payment.counters.coldWater : '';
+                    hotWaterCounterInput.value = payment.counters ? payment.counters.hotWater : '';
+                    electricityCounterInput.value = payment.counters ? payment.counters.electricity : '';
                     utilitiesReceivedInput.value = payment.utilitiesReceived;
                     
                     // Восстанавливаем использованные тарифы
                     if (payment.usedTariffs) {
-                        coldWaterCalc.textContent = (payment.utilities.coldWater * payment.usedTariffs.coldWater).toFixed(2) + ' руб.';
-                        hotWaterCalc.textContent = (payment.utilities.hotWater * payment.usedTariffs.hotWater).toFixed(2) + ' руб.';
-                        drainageCalc.textContent = ((payment.utilities.coldWater + payment.utilities.hotWater) * payment.usedTariffs.drainage).toFixed(2) + ' руб.';
-                        electricityCalc.textContent = (payment.utilities.electricity * payment.usedTariffs.electricity).toFixed(2) + ' руб.';
+                        coldWaterConsumed.textContent = payment.utilities.coldWater.toFixed(3) + ' м³';
+                        hotWaterConsumed.textContent = payment.utilities.hotWater.toFixed(3) + ' м³';
+                        electricityConsumed.textContent = payment.utilities.electricity.toFixed(2) + ' кВт·ч';
+                        coldWaterCalc.textContent = payment.utilities.coldWaterCost.toFixed(2) + ' руб.';
+                        hotWaterCalc.textContent = payment.utilities.hotWaterCost.toFixed(2) + ' руб.';
+                        drainageCalc.textContent = payment.utilities.drainageCost.toFixed(2) + ' руб.';
+                        electricityCalc.textContent = payment.utilities.electricityCost.toFixed(2) + ' руб.';
                         utilitiesTotal.textContent = payment.utilities.total.toFixed(2) + ' руб.';
                     } else {
                         // Если старые данные без сохраненных тарифов, пересчитываем
@@ -1303,6 +1356,7 @@
                     payments = payments.filter(p => p.id != paymentId);
                     localStorage.setItem('payments', JSON.stringify(payments));
                     loadPayments();
+                    updateCountersInfo();
                     showNotification('Запись удалена', 'success');
                 }
             }
@@ -1622,61 +1676,131 @@
             function exportToExcel() {
                 const payments = JSON.parse(localStorage.getItem('payments')) || [];
                 const apartments = JSON.parse(localStorage.getItem('apartments')) || [];
-                const selectedApartment = apartmentSelect.value;
+                const selectedMonth = monthSelect.value;
+                const selectedYear = yearInput.value;
                 
-                // Фильтрация платежей по выбранной квартире
-                let filteredPayments = payments;
-                if (selectedApartment !== 'all') {
-                    filteredPayments = payments.filter(p => p.apartmentId == selectedApartment);
-                }
-                
-                if (filteredPayments.length === 0) {
+                if (payments.length === 0) {
                     showNotification('Нет данных для экспорта', 'error');
                     return;
                 }
                 
-                // Создание CSV-строки
-                let csv = 'Месяц/Год;Квартира;Аренда (руб.);Поступило аренды (руб.);Холодная вода (руб.);Горячая вода (руб.);Водоотведение (руб.);Электроэнергия (руб.);Итого коммунальные (руб.);Поступило коммунальных (руб.);Отопление (руб.);ЖЭК (руб.);Капремонт (руб.)\n';
+                // Фильтрация платежей по выбранному месяцу
+                let filteredPayments = payments;
+                if (selectedMonth && selectedYear) {
+                    filteredPayments = payments.filter(p => p.month == selectedMonth && p.year == selectedYear);
+                }
                 
+                if (filteredPayments.length === 0) {
+                    showNotification('Нет данных за выбранный период для экспорта', 'error');
+                    return;
+                }
+                
+                // Создание CSV-строки с улучшенным форматированием
+                let csv = '\uFEFF'; // BOM для корректного отображения кириллицы в Excel
+                
+                // Заголовок отчета
                 const monthNames = [
                     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
                     'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
                 ];
+                const reportDate = `${monthNames[parseInt(selectedMonth) - 1]} ${selectedYear}`;
+                
+                csv += `Отчет по коммунальным платежам за ${reportDate}\n\n`;
+                
+                // Основная таблица
+                csv += 'Квартира;';
+                csv += 'Аренда (руб.);';
+                csv += 'Поступило аренды (руб.);';
+                csv += 'Холодная вода (м³);';
+                csv += 'Холодная вода (руб.);';
+                csv += 'Горячая вода (м³);';
+                csv += 'Горячая вода (руб.);';
+                csv += 'Водоотведение (руб.);';
+                csv += 'Электроэнергия (кВт·ч);';
+                csv += 'Электроэнергия (руб.);';
+                csv += 'Итого коммунальные (руб.);';
+                csv += 'Поступило коммунальных (руб.);';
+                csv += 'Отопление (руб.);';
+                csv += 'ЖЭК (руб.);';
+                csv += 'Капремонт (руб.);';
+                csv += 'Налог 4% (руб.);';
+                csv += 'Чистая прибыль (руб.)\n';
+                
+                let totalRent = 0;
+                let totalRentReceived = 0;
+                let totalUtilities = 0;
+                let totalUtilitiesReceived = 0;
+                let totalHeating = 0;
+                let totalZhek = 0;
+                let totalOverhaul = 0;
+                let totalTax = 0;
+                let totalNetProfit = 0;
                 
                 filteredPayments.forEach(payment => {
-                    // Получение адреса квартиры
                     const apartment = apartments.find(a => a.id == payment.apartmentId) || { address: 'Неизвестно' };
+                    const income = payment.rentReceived + payment.utilitiesReceived;
+                    const tax = income * 0.04;
+                    const expenses = payment.heating + payment.zhek + payment.overhaul;
+                    const netProfit = income - tax - expenses;
                     
-                    const monthYear = `${monthNames[parseInt(payment.month) - 1]} ${payment.year}`;
-                    csv += `${monthYear};${apartment.address};${payment.rentAmount.toFixed(2)};${payment.rentReceived.toFixed(2)};${payment.utilities.coldWaterCost.toFixed(2)};${payment.utilities.hotWaterCost.toFixed(2)};${payment.utilities.drainageCost.toFixed(2)};${payment.utilities.electricityCost.toFixed(2)};${payment.utilities.total.toFixed(2)};${payment.utilitiesReceived.toFixed(2)};${payment.heating.toFixed(2)};${payment.zhek.toFixed(2)};${payment.overhaul.toFixed(2)}\n`;
+                    csv += `${apartment.address};`;
+                    csv += `${payment.rentAmount.toFixed(2)};`;
+                    csv += `${payment.rentReceived.toFixed(2)};`;
+                    csv += `${payment.utilities.coldWater.toFixed(3)};`;
+                    csv += `${payment.utilities.coldWaterCost.toFixed(2)};`;
+                    csv += `${payment.utilities.hotWater.toFixed(3)};`;
+                    csv += `${payment.utilities.hotWaterCost.toFixed(2)};`;
+                    csv += `${payment.utilities.drainageCost.toFixed(2)};`;
+                    csv += `${payment.utilities.electricity.toFixed(2)};`;
+                    csv += `${payment.utilities.electricityCost.toFixed(2)};`;
+                    csv += `${payment.utilities.total.toFixed(2)};`;
+                    csv += `${payment.utilitiesReceived.toFixed(2)};`;
+                    csv += `${payment.heating.toFixed(2)};`;
+                    csv += `${payment.zhek.toFixed(2)};`;
+                    csv += `${payment.overhaul.toFixed(2)};`;
+                    csv += `${tax.toFixed(2)};`;
+                    csv += `${netProfit.toFixed(2)}\n`;
+                    
+                    // Суммируем итоги
+                    totalRent += payment.rentAmount;
+                    totalRentReceived += payment.rentReceived;
+                    totalUtilities += payment.utilities.total;
+                    totalUtilitiesReceived += payment.utilitiesReceived;
+                    totalHeating += payment.heating;
+                    totalZhek += payment.zhek;
+                    totalOverhaul += payment.overhaul;
+                    totalTax += tax;
+                    totalNetProfit += netProfit;
                 });
+                
+                // Итоговая строка
+                csv += '\n';
+                csv += 'ИТОГО;';
+                csv += `${totalRent.toFixed(2)};`;
+                csv += `${totalRentReceived.toFixed(2)};`;
+                csv += ';;'; // Пропуск для потребления
+                csv += ';;'; // Пропуск для потребления
+                csv += ';;'; // Пропуск для потребления
+                csv += `${totalUtilities.toFixed(2)};`;
+                csv += `${totalUtilitiesReceived.toFixed(2)};`;
+                csv += `${totalHeating.toFixed(2)};`;
+                csv += `${totalZhek.toFixed(2)};`;
+                csv += `${totalOverhaul.toFixed(2)};`;
+                csv += `${totalTax.toFixed(2)};`;
+                csv += `${totalNetProfit.toFixed(2)}\n`;
                 
                 // Создание и скачивание файла
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
                 const url = URL.createObjectURL(blob);
                 link.setAttribute('href', url);
-                link.setAttribute('download', `коммунальные_платежи_${new Date().toISOString().slice(0, 10)}.csv`);
+                link.setAttribute('download', `отчет_коммунальные_${selectedMonth}_${selectedYear}.csv`);
                 link.style.visibility = 'hidden';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 
-                showNotification('Данные экспортированы в CSV', 'success');
-            }
-            
-            // Функция отправки на email (имитация)
-            function sendEmail() {
-                const payments = JSON.parse(localStorage.getItem('payments')) || [];
-                
-                if (payments.length === 0) {
-                    showNotification('Нет данных для отправки', 'error');
-                    return;
-                }
-                
-                // В реальном приложении здесь был бы запрос к серверу для отправки email
-                // Для демонстрации просто показываем уведомление
-                showNotification('Функция отправки на email будет реализована на серверной стороне', 'success');
+                showNotification('Отчет успешно экспортирован в Excel', 'success');
             }
             
             // Функция очистки формы
@@ -1687,15 +1811,24 @@
                     heatingInput.value = '0';
                     zhekInput.value = '0';
                     overhaulInput.value = '0';
-                    coldWaterInput.value = '';
-                    hotWaterInput.value = '';
-                    electricityInput.value = '';
+                    coldWaterCounterInput.value = '';
+                    hotWaterCounterInput.value = '';
+                    electricityCounterInput.value = '';
                     utilitiesReceivedInput.value = '';
                     
                     calculateUtilities();
                     
                     showNotification('Форма очищена', 'success');
                 }
+            }
+            
+            // Вспомогательная функция для получения названия месяца
+            function getMonthName(monthNumber) {
+                const monthNames = [
+                    'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+                ];
+                return monthNames[parseInt(monthNumber) - 1];
             }
             
             // Функция показа уведомлений
