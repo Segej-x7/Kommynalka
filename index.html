@@ -427,25 +427,28 @@
                             <div class="card">
                                 <h3>Данные об аренде</h3>
                                 <div class="form-group">
-                                    <label for="month">Месяц</label>
-                                    <select id="month">
-                                        <option value="1">Январь</option>
-                                        <option value="2">Февраль</option>
-                                        <option value="3">Март</option>
-                                        <option value="4">Апрель</option>
-                                        <option value="5">Май</option>
-                                        <option value="6">Июнь</option>
-                                        <option value="7">Июль</option>
-                                        <option value="8">Август</option>
-                                        <option value="9">Сентябрь</option>
-                                        <option value="10">Октябрь</option>
-                                        <option value="11">Ноябрь</option>
-                                        <option value="12">Декабрь</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="year">Год</label>
-                                    <input type="number" id="year" min="2020" max="2045" value="2025">
+                                    <label for="analysisMonth">Месяц:</label>
+                                <select id="analysisMonth">
+                                <option value="all">Все месяцы</option>
+                                <option value="1">Январь</option>
+                                <option value="2">Февраль</option>
+                                <option value="3">Март</option>
+                                <option value="4">Апрель</option>
+                                <option value="5">Май</option>
+                                <option value="6">Июнь</option>
+                                <option value="7">Июль</option>
+                                <option value="8">Август</option>
+                                <option value="9">Сентябрь</option>
+                                <option value="10">Октябрь</option>
+                                <option value="11">Ноябрь</option>
+                                <option value="12">Декабрь</option>
+                               </select>
+                               <label for="analysisYear">Год:</label>
+				<input type="number" id="year" min="2020" max="2045">
+
+				<script>
+				document.getElementById('year').value = new Date().getFullYear();
+				</script>
                                 </div>
                                 <div class="form-group">
                                     <label for="rentAmount">Сумма аренды (руб.)</label>
@@ -611,7 +614,11 @@
                                 <option value="12">Декабрь</option>
                             </select>
                             <label for="analysisYear">Год:</label>
-                            <input type="number" id="analysisYear" min="2020" max="2035" value="2025">
+			<input type="number" id="year" min="2020" max="2045">
+
+				<script>
+			document.getElementById('year').value = new Date().getFullYear();
+			</script>
                             <button id="updateAnalysisBtn" class="btn-success">Обновить анализ</button>
                         </div>
                         
